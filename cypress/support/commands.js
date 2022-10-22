@@ -50,9 +50,9 @@ Cypress.Commands.add('getBookingToken', () => {
 Cypress.Commands.add('createNewReservation', (bookingToken) => {
     const options = {
         method: 'POST',
-        url: 'https://qaa-be.platform-prod.skypicker.com/booking/create_booking?confirm=true',
+        url: 'https://qaa-be.platform-prod.skypicker.com/booking/create_booking?confirm=api_call',
         qs: {
-            confirm: true,
+            confirm: "api_call",
         },
         timeout: 60000,
         body: 
