@@ -10,3 +10,4 @@
 .idea/
 node_modules/
 /cypress/videos
+/.husky/pre-commit
