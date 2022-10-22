@@ -23,6 +23,7 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+import 'cypress-mailosaur'
 
 Cypress.Commands.add("getByData", (selector) => {
     return cy.get(`[data-test=${selector}]`)
@@ -88,5 +89,30 @@ Cypress.Commands.add('createNewReservation', (bookingToken) => {
     cy.request(options).then((response) => {
         expect(response.status).to.eq(200)
         return response.body.mmb_link
+    })
+})
+
+Cypress.Commands.add('flightReservation', () => {
+    const options = {
+        method: 'POST',
+        url: 'https://qaa-be.platform-prod.skypicker.com/booking/simple',
+        qs: {
+            confirm: "api_call",
+            reservation_email: "COKOLIV@a0eytoem.mailosaur.net",
+            origin: "LHR",
+            destination: "DXB",
+            days_from_today: "5",
+            vehicle_type: "aircraft",
+            currency: "EUR",
+            booked_at: "qaabe"
+        },
+        timeout: 60000
+    }
+    cy.request(options).then((response) => {
+        expect(response.status).to.eq(200)
+        const list = response.body.split('<h2>')
+        const finalId = list[1].split('<br>')
+        const bookingId = finalId[0] 
+        return bookingId.trim()
     })
 })
