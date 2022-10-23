@@ -1,18 +1,19 @@
 /// <reference types="Cypress" />
 
-describe("Intro test", () => {
+describe("Get booking token, change flight and check specific parameters", () => {
     it("Manage my booking task", () => {
         cy.setCookie('__kwc_agreed', 'true')
         cy.getBookingToken().then((token) => { 
         cy.visit('https://www.kiwi.com/booking?token=' + token)
         cy.createNewReservation(token).then((link) => {
                 cy.log(link)
-                cy.visit(link)
+                cy.intercept("https://booking-api.skypicker.com/mmb/v1/bookings/*/itinerary_changes/offer?*").as('getSettings')
+                cy.visit(link)                
         // cy.visit("https://www.kiwi.com/en/manage/293961932/901bbb7f-6e10-47ba-835e-bc8ac378a4ad")
                 cy.url().should("include", "manage")
                 cy.get("button[data-test='FlightsChange']").click()
                 cy.contains("a", "Flexi Ticket").should("have.text", "Flexi Ticket").click()
-                cy.get("div[data-test='ArticleContent_Text'] ul").last().should("contain.text", "If you change your trip, you'll only pay the difference for the new booking. We'll cover the rest.")
+                cy.get("div[data-test='ArticleContent_Text'] li:first-child").eq(2).should("contain.text", "If you change your trip, you’ll only pay the difference for the new booking. We’ll cover the rest.")
                 cy.get("div[class*='DrawerClose'] div").eq(2).click()
                 cy.get("input[data-test='search-origin']").type("VIE").should('have.value', "VIE")
                 cy.get('.ModalSimplePicker').find('.SimplePickerPlaceRow.selected').click()
@@ -21,16 +22,19 @@ describe("Intro test", () => {
                 cy.get(".SearchField-head").click()
                 cy.get('div[data-test="CalendarDay active not-selected"]').contains('.day-number', 15).click()
                 cy.get('input[name="search-outboundDate"]').should('include.value', 15)
-                cy.getByData("ChangeAlternativesSearchForm-button").click() 
-                //cy.get('.JourneyInfo button',{ timeout: 15000 }).first().click({force:true})
+                cy.getByData("ChangeAlternativesSearchForm-button").click()          
+                cy.wait('@getSettings')
+                // cy.get("div[data-test='BookingJourneyChange-alternative-list']").within(() => {  
+                //     cy.parentsUntil("div[data-test='19ef01af4b8d0000c613d9a2_0]").eq(0).scrollIntoView().click()            
+                // })
+                //cy.get('.JourneyInfo button', { timeout: 15000 }).eq(0).scrollIntoView().click({force:true})
                 cy.get("[data-test='ItineraryGuarantee']").find('span').should("include.text", "Kiwi.com Guarantee")
                 cy.get('[data-test="JourneyBookingButton-Itinerary-bookingBtn"]').click()
                 cy.get("div[data-test='changeConfirmation-NewItinerary'] span[class='TripPlace from'] span[class='code']").should("have.text", "VIE")
                 cy.get("div[data-test='changeConfirmation-NewItinerary'] span[class='TripPlace to'] span[class='name']").should("have.text", "Barcelona")
                 cy.get('[data-test="ChangeConfirmation-CheckoutBtn"]').should('be.disabled')
-                //cy.get('input[type="checkbox"]').check({force: true}).should('be.checked')
+                // cy.get('input[type="checkbox"]').check({force: true}).should('be.checked')
                 cy.get('[data-test="ChangeConfirmation-CheckoutBtn"]').contains('Confirm change').click()
-                // cy.get("h2[id='1-523']").should("have.text", "Thanks for your request")
                 cy.contains('button', 'Return to your trip').click()
                 cy.reload()
                 cy.getByData('BookingStatusBadge-changeInProgress').should("contain.text", 'Change in progress')
@@ -41,7 +45,7 @@ describe("Intro test", () => {
                 cy.contains("You've paid for this service. We'll let you know as soon as it has been processed.")
                 cy.get("div[data-test='Journey-toggle'] ").click()           
                 cy.get("div[data-test='ItineraryGuarantee']").should("contain", "Kiwi.com Guarantee")
-                cy.get("div[data-test='BookingBagsOverview']").eq(1).should("contain", "Processing")           
+                cy.get("div[data-test='BookingBagsOverview']").eq(2).should("contain", "Processing")           
             })                              
         })
     })
